@@ -4,6 +4,9 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WeatherModule } from './weather/weather.module';
 import { join } from 'path';
+import { TrafficModule } from './traffic/traffic.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { SearchRecordModule } from './searchRecord/searchRecord.module';
 
 @Module({
   imports: [
@@ -18,6 +21,12 @@ import { join } from 'path';
       synchronize: true,
     }),
     WeatherModule,
+    TrafficModule,
+    SearchRecordModule,
+    CacheModule.register({
+      ttl: 5 * 60 * 60, // 5 minutes
+      isGlobal: true,
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

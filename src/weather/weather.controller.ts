@@ -1,37 +1,33 @@
 import {
-  Body,
   Controller,
   //   Delete,
   Get,
   Param,
-  Post,
   ParseIntPipe,
+  Inject,
 } from '@nestjs/common';
 import { WeatherService } from './weather.service';
-import { CreateWeatherDto } from './dto/weather.dto';
-import { Weather } from './entities/weather.entity';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { getWeatherChacheKey } from '../const/cacheKeys';
 
 @Controller('weather')
 export class WeatherController {
-  constructor(private readonly weatherService: WeatherService) {}
-
-  @Post()
-  create(@Body() createWeather: CreateWeatherDto): Promise<Weather> {
-    return this.weatherService.createWeather(createWeather);
-  }
+  constructor(
+    private readonly weatherService: WeatherService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   @Get(':timestamp')
-  getWeatherByTimeStamp(@Param('timestamp', ParseIntPipe) timestamp: number) {
-    return this.weatherService.getWeatherByTimeStamp(timestamp);
+  async getWeatherByTimeStamp(
+    @Param('timestamp', ParseIntPipe) _timestamp: number,
+  ) {
+    const timestamp = Math.floor(_timestamp / 5000) * 5000; //Accuracy is 5 seconds
+    const cacheKey = await getWeatherChacheKey(timestamp);
+    const cachedWeather = await this.cacheManager.get(cacheKey);
+    if (cachedWeather) {
+      return cachedWeather;
+    } else {
+      return this.weatherService.getWeatherLocationsByTimeStamp(timestamp);
+    }
   }
-
-  //   @Get(':id')
-  //   findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
-  //     return this.usersService.findOne(id);
-  //   }
-
-  //   @Delete(':id')
-  //   remove(@Param('id') id: string): Promise<void> {
-  //     return this.usersService.remove(id);
-  //   }
 }

@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateTrafficDto, CreateWeatherDto } from './dto/weather.dto';
-import { Traffic } from './entities/traffic.entity';
+import { CreateWeatherDto, IValidPeriod, IForecast } from './dto/weather.dto';
 import { Weather } from './entities/weather.entity';
 import { timestampToDateTime } from '../utils/converter';
 import axios from 'axios';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { getWeatherChacheKey } from '../const/cacheKeys';
 
 const weatherForecastAPI =
   'https://api.data.gov.sg/v1/environment/2-hour-weather-forecast';
-const trafficImagesAPI = 'https://api.data.gov.sg/v1/transport/traffic-images';
 
 // {
 //   "name": "Ang Mo Kio",
@@ -41,37 +41,34 @@ interface IAreaMetadata {
 //     md5: "999d9a9d30600a81847c2e45cc0bdc43",
 //   },
 // };
-interface ITrafficItem {
-  timestamp: string;
-  image: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-  camera_id: string;
-  image_metadata: {
-    height: number;
-    width: number;
-    md5: string;
-  };
-}
 
 @Injectable()
 export class WeatherService {
   constructor(
-    @InjectRepository(Traffic)
-    private readonly trafficRepository: Repository<Traffic>,
     @InjectRepository(Weather)
     private readonly weatherRepository: Repository<Weather>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  createWeather(createWeatherDto: CreateWeatherDto): Promise<Weather> {
-    const weather = new Weather();
-    weather.name = createWeatherDto.name;
-    return this.weatherRepository.save(weather);
+  async getWeatherLocationsByTimeStamp(
+    timestamp: number,
+  ): Promise<CreateWeatherDto[]> {
+    try {
+      const weatherDtoList: CreateWeatherDto[] =
+        await this.fetchWeatherByTimeStamp(timestamp);
+      this.cacheManager.set(getWeatherChacheKey(timestamp), weatherDtoList);
+
+      return weatherDtoList;
+    } catch (error) {
+      // error handling
+      console.error('Error fetching data from external API:', error);
+      throw error;
+    }
   }
 
-  async getWeatherByTimeStamp(timestamp: number): Promise<any> {
+  async fetchWeatherByTimeStamp(
+    timestamp: number,
+  ): Promise<CreateWeatherDto[]> {
     const dateTime = timestampToDateTime(timestamp);
 
     try {
@@ -81,13 +78,26 @@ export class WeatherService {
       const weatherRes = await axios.get(weatherForecastAPI, {
         params,
       });
+
       const areaMetadata: IAreaMetadata[] = weatherRes.data.area_metadata;
+      const validPeriod: IValidPeriod = weatherRes.data.items[0].valid_period;
+      const forecasts: IForecast[] = weatherRes.data.items[0].forecasts;
+
       const weatherDtoList: CreateWeatherDto[] = areaMetadata.map((area) => {
         return {
-          name: area.name,
-          latitude: area.label_location.latitude,
-          longitude: area.label_location.longitude,
-          timestamp: dateTime, // convert timestamp to datetime
+          name: area.name.replaceAll(' ', '_'),
+          point: {
+            type: 'Point',
+            coordinates: [
+              area.label_location.longitude,
+              area.label_location.latitude,
+            ],
+          },
+          timestamp,
+          date_time_with_timezone: dateTime,
+          valid_period_start: validPeriod.start,
+          valid_period_end: validPeriod.end,
+          forecast: forecasts.find((e) => e.area === area.name)?.forecast,
         };
       });
       this.weatherRepository
@@ -96,48 +106,12 @@ export class WeatherService {
         .into(Weather)
         .values(weatherDtoList)
         .execute();
-      const trafficRes = await axios.get(trafficImagesAPI, {
-        params,
-      });
-      const trafficList: ITrafficItem[] = trafficRes.data;
-      const trafficDtoList: CreateTrafficDto[] = trafficList.map((traffic) => {
-        return {
-          image_url: traffic.image,
-          latitude: traffic.location.latitude,
-          longitude: traffic.location.longitude,
-          timestamp: traffic.timestamp, // convert timestamp to datetime
-        };
-      });
 
-      this.trafficRepository
-        .createQueryBuilder()
-        .insert()
-        .into(Traffic)
-        .values(trafficDtoList)
-        .execute();
-
-      // this.weatherRepository
-
-      return {
-        locationList: weatherDtoList.map((e) => e.name),
-        // trafficRes: trafficRes.data,
-      };
+      return weatherDtoList;
     } catch (error) {
       // error handling
       console.error('Error fetching data from external API:', error);
       throw error;
     }
   }
-
-  //   async findAll(): Promise<User[]> {
-  //     return this.usersRepository.find();
-  //   }
-
-  //   findOne(id: number): Promise<User> {
-  //     return this.usersRepository.findOneBy({ id: id });
-  //   }
-
-  //   async remove(id: string): Promise<void> {
-  //     await this.usersRepository.delete(id);
-  //   }
 }

@@ -1,26 +1,23 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Geometry } from '../../type';
 
 @Entity()
-export class Weather {
+export class Traffic {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
-
-  @Column()
-  valid_period_start: Date;
-
-  @Column()
-  valid_period_end: Date;
-
-  @Column()
-  forecast: string;
+  @Column({
+    unique: true,
+  })
+  image_url: string;
 
   @Column('geography', {
     spatialFeatureType: 'Point',
     srid: 4326,
   })
+  @Index({ spatial: true })
+  point: Geometry;
+
   @Column({ type: 'bigint' })
   timestamp: number;
 
