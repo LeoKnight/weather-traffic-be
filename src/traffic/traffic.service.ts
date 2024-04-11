@@ -46,6 +46,8 @@ export class TrafficService {
               traffic.location.latitude,
             ],
           },
+          width: traffic.image_metadata.width,
+          height: traffic.image_metadata.height,
           timestamp,
           date_time_with_timezone: dateTime,
         };
@@ -66,16 +68,11 @@ export class TrafficService {
     }
   }
 
-  async getTrafficByTimeStampAndLocation(
-    _timestamp: number,
+  async _getTrafficByTimeStampAndLocation(
+    timestamp: number,
     longitude: number,
     latitude: number,
   ): Promise<CreateTrafficDto[]> {
-    const timestamp = Math.floor(_timestamp / 5000) * 5000; //Accuracy is 5 seconds
-
-    this.searchRecordService.saveSearchRecord(timestamp, longitude, latitude);
-
-    await this.fetchTrafficByTimeStamp(timestamp);
     const fiveSecondsAgo = timestamp - 5 * 1000;
     const fiveSecondsLater = timestamp + 5 * 1000;
 
@@ -92,6 +89,30 @@ export class TrafficService {
       .getMany();
     const cacheKey = getTrafficChacheKey(timestamp, longitude, latitude);
     this.cacheManager.set(cacheKey, nearTrafficDataList);
+    return nearTrafficDataList;
+  }
+
+  async getTrafficByTimeStampAndLocation(
+    _timestamp: number,
+    longitude: number,
+    latitude: number,
+  ): Promise<CreateTrafficDto[]> {
+    const hour = 60 * 60 * 1000;
+    const timestamp = Math.floor(_timestamp / hour) * hour; //Accuracy is 1 hour
+
+    const count =
+      await this.searchRecordService.getSearchRecordCount(timestamp);
+    if (!count) {
+      await this.fetchTrafficByTimeStamp(timestamp);
+    }
+
+    const nearTrafficDataList = await this._getTrafficByTimeStampAndLocation(
+      timestamp,
+      longitude,
+      latitude,
+    );
+
+    this.searchRecordService.saveSearchRecord(timestamp, longitude, latitude);
 
     return nearTrafficDataList;
   }

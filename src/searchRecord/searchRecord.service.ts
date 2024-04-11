@@ -35,6 +35,18 @@ export class SearchRecordService {
     await this.searchRecordRepository.save(searchRecord);
   }
 
+  async getSearchRecordCount(
+    timestamp: number,
+    longitude?: number,
+    latitude?: number,
+  ) {
+    const searchRecord = await this.searchRecordRepository.findOne({
+      where: { timestamp, longitude, latitude },
+    });
+
+    return searchRecord?.count;
+  }
+
   //Create an api to retrieve the top 10 date time + location searched within a period.
   async getTopSearchRecordByPeriod(from: number, to: number) {
     const topSearches = await this.searchRecordRepository

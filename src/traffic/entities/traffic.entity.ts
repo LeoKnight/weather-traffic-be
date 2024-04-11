@@ -6,10 +6,14 @@ export class Traffic {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    unique: true,
-  })
+  @Column()
   image_url: string;
+
+  @Column()
+  width: number;
+
+  @Column()
+  height: number;
 
   @Column('geography', {
     spatialFeatureType: 'Point',
