@@ -1,17 +1,15 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { timestampToDateTime } from '../utils/converter';
-
+import { timestampToDateTime } from 'src/utils/converter';
 import { Traffic } from './entities/traffic.entity';
 import { CreateTrafficDto } from './dto/traffic.dto';
 import axios from 'axios';
-import { ITrafficItem } from '../type';
+import { ITrafficItem } from 'src/type';
 import { SearchRecordService } from '../searchRecord/searchRecord.service';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { getTrafficChacheKey } from '../const/cacheKeys';
-
-const trafficImagesAPI = 'https://api.data.gov.sg/v1/transport/traffic-images';
+import { getTrafficChacheKey } from 'src/constants/cacheKeys';
+import { trafficImagesAPI } from 'src/constants';
 
 @Injectable()
 export class TrafficService {

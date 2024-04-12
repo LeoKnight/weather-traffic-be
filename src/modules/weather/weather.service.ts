@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateWeatherDto, IValidPeriod, IForecast } from './dto/weather.dto';
 import { Weather } from './entities/weather.entity';
-import { timestampToDateTime } from '../utils/converter';
+import { timestampToDateTime } from '../../utils/converter';
 import axios from 'axios';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { getWeatherChacheKey } from '../const/cacheKeys';
+import { getWeatherChacheKey } from '../../constants/cacheKeys';
 
 const weatherForecastAPI =
   'https://api.data.gov.sg/v1/environment/2-hour-weather-forecast';

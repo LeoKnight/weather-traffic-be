@@ -1,4 +1,4 @@
-import { Geometry } from '../../type';
+import { Geometry } from '../../../type';
 
 export class CreateTrafficDto {
   id?: number;

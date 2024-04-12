@@ -7,7 +7,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { TrafficService } from './traffic.service';
-import { getTrafficChacheKey } from '../const/cacheKeys';
+import { getTrafficChacheKey } from '../../constants/cacheKeys';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 @Controller('fraffic')

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { WeatherService } from './weather.service';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { getWeatherChacheKey } from '../const/cacheKeys';
+import { getWeatherChacheKey } from '../../constants/cacheKeys';
 
 @Controller('weather')
 export class WeatherController {
