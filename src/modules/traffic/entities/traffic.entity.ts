@@ -22,9 +22,9 @@ export class Traffic {
   @Index({ spatial: true })
   point: Geometry;
 
-  @Column({ type: 'bigint' })
-  timestamp: number;
+  @Column({ type: 'timestamptz' })
+  date_time: Date;
 
-  @Column({ type: 'timestamptz' }) // Recommended
+  @Column({ type: 'timestamptz' })
   date_time_with_timezone: Date;
 }

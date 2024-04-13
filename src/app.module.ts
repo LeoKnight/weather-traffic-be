@@ -7,10 +7,11 @@ import { TrafficModule } from './modules/traffic/traffic.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { SearchRecordModule } from './modules/searchRecord/searchRecord.module';
 import { AutheService } from './global-service/auth-service/auth.service';
-import { UserModule } from './user/user.module';
+import { UserModule } from './modules/user/user.module';
 import { configService } from './global-service/config-service/config.service';
 import { AuthMiddleware } from './middlewares/auth.middleware/auth.middleware';
 import { Base64DecryptMiddleware } from './middlewares/base64.decrypt.middleware/base64.decrypt.middleware';
+import { ExternalApiService } from './external-api/external-api.service';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { Base64DecryptMiddleware } from './middlewares/base64.decrypt.middleware
     UserModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AutheService],
+  providers: [AppService, AutheService, ExternalApiService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

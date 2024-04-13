@@ -1,8 +1,7 @@
-export const getWeatherChacheKey = (timestamp: number) =>
-  `weather_${timestamp}`;
+export const getWeatherChacheKey = (date: string) => `weather_${date}`;
 
 export const getTrafficChacheKey = (
-  timestamp: number,
+  date: string,
   longitude: number,
   latitude: number,
-) => `traffic_${timestamp}_${longitude}_${latitude}`;
+) => `traffic_${date}_${longitude}_${latitude}`;

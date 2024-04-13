@@ -5,8 +5,8 @@ export class SearchRecord {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'bigint' })
-  timestamp: number;
+  @Column({ type: 'timestamptz' })
+  date_time: Date;
 
   @Column('float')
   longitude: number;
@@ -14,8 +14,8 @@ export class SearchRecord {
   @Column('float')
   latitude: number;
 
-  @Column({ type: 'bigint' })
-  search_time: number;
+  @Column({ type: 'timestamptz' })
+  search_time: Date;
 
   @Column()
   count: number;

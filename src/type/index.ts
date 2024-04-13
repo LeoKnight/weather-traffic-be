@@ -17,3 +17,11 @@ export interface Geometry {
   type: 'Point';
   coordinates: [number, number];
 }
+
+export interface IAreaMetadata {
+  name: string;
+  label_location: {
+    latitude: number;
+    longitude: number;
+  };
+}

@@ -21,9 +21,6 @@ export class Weather {
     spatialFeatureType: 'Point',
     srid: 4326,
   })
-  @Column({ type: 'bigint' })
-  timestamp: number;
-
-  @Column({ type: 'timestamptz' }) // Recommended
-  date_time_with_timezone: Date;
+  @Column({ type: 'timestamptz' })
+  date_time: Date;
 }

@@ -13,21 +13,21 @@ export class SearchRecordService {
 
   //save record
   async saveSearchRecord(
-    timestamp: number,
+    date_time: string,
     longitude: number,
     latitude: number,
   ) {
     let searchRecord = await this.searchRecordRepository.findOne({
-      where: { timestamp, longitude, latitude },
+      where: { date_time: new Date(date_time), longitude, latitude },
     });
 
     if (!searchRecord) {
       searchRecord = new SearchRecord();
-      searchRecord.timestamp = timestamp;
+      searchRecord.date_time = new Date(date_time);
       searchRecord.longitude = longitude;
       searchRecord.latitude = latitude;
       searchRecord.count = 1;
-      searchRecord.search_time = Date.now();
+      searchRecord.search_time = new Date();
     } else {
       searchRecord.count++;
     }
@@ -36,12 +36,12 @@ export class SearchRecordService {
   }
 
   async getSearchRecordCount(
-    timestamp: number,
+    date_time: string,
     longitude?: number,
     latitude?: number,
   ) {
     const searchRecord = await this.searchRecordRepository.findOne({
-      where: { timestamp, longitude, latitude },
+      where: { date_time: new Date(date_time), longitude, latitude },
     });
 
     return searchRecord?.count;

@@ -1,14 +1,8 @@
-import {
-  Controller,
-  Query,
-  Get,
-  Param,
-  ParseIntPipe,
-  Inject,
-} from '@nestjs/common';
+import { Controller, Query, Get, Inject } from '@nestjs/common';
 import { TrafficService } from './traffic.service';
 import { getTrafficChacheKey } from '../../constants/cacheKeys';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { TrafficRequest } from './dto/traffic.dto';
 
 @Controller('fraffic')
 export class TrafficController {
@@ -17,21 +11,17 @@ export class TrafficController {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  @Get(':timestamp')
-  async getTrafficImageByTimeStampAndPoint(
-    @Param('timestamp', ParseIntPipe) _timestamp: number,
-    @Query('longitude') longitude: number,
-    @Query('latitude') latitude: number,
-  ) {
-    const timestamp = Math.floor(_timestamp / 5000) * 5000; //Accuracy is 5 seconds
-
-    const cacheKey = getTrafficChacheKey(timestamp, longitude, latitude);
+  @Get()
+  async getTrafficImageByTimeStampAndPoint(@Query() query: TrafficRequest) {
+    // const timestamp = Math.floor(_timestamp / 5000) * 5000; //Accuracy is 5 seconds
+    const { date_time, longitude, latitude } = query;
+    const cacheKey = getTrafficChacheKey(date_time, longitude, latitude);
     const cachedTraffic = await this.cacheManager.get(cacheKey);
     if (cachedTraffic) {
       return cachedTraffic;
     }
-    return this.trafficService.getTrafficByTimeStampAndLocation(
-      timestamp,
+    return await this.trafficService.getTrafficByDateAndLocation(
+      date_time,
       longitude,
       latitude,
     );

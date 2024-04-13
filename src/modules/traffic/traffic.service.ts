@@ -1,15 +1,13 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { timestampToDateTime } from 'src/utils/converter';
 import { Traffic } from './entities/traffic.entity';
 import { CreateTrafficDto } from './dto/traffic.dto';
-import axios from 'axios';
-import { ITrafficItem } from 'src/type';
 import { SearchRecordService } from '../searchRecord/searchRecord.service';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { getTrafficChacheKey } from 'src/constants/cacheKeys';
-import { trafficImagesAPI } from 'src/constants';
+import { ExternalApiService } from 'src/external-api/external-api.service';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class TrafficService {
@@ -19,60 +17,26 @@ export class TrafficService {
     @Inject(SearchRecordService)
     private readonly searchRecordService: SearchRecordService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly externalApiService: ExternalApiService,
   ) {}
 
-  async fetchTrafficByTimeStamp(
-    timestamp: number,
-  ): Promise<CreateTrafficDto[]> {
-    const dateTime = timestampToDateTime(timestamp);
-
-    try {
-      const params = {
-        date_time: dateTime,
-      };
-      const trafficRes = await axios.get(trafficImagesAPI, {
-        params,
-      });
-      const trafficList: ITrafficItem[] = trafficRes.data.items[0].cameras;
-      const trafficDtoList: CreateTrafficDto[] = trafficList.map((traffic) => {
-        return {
-          image_url: traffic.image,
-          point: {
-            type: 'Point',
-            coordinates: [
-              traffic.location.longitude,
-              traffic.location.latitude,
-            ],
-          },
-          width: traffic.image_metadata.width,
-          height: traffic.image_metadata.height,
-          timestamp,
-          date_time_with_timezone: dateTime,
-        };
-      });
-
-      this.trafficRepository
-        .createQueryBuilder()
-        .insert()
-        .into(Traffic)
-        .values(trafficDtoList)
-        .execute();
-
-      return trafficDtoList;
-    } catch (error) {
-      // error handling
-      console.error('Error fetching data from external API:', error);
-      throw error;
-    }
-  }
-
+  // this.trafficRepository
+  //       .createQueryBuilder()
+  //       .insert()
+  //       .into(Traffic)
+  //       .values(trafficDtoList)
+  //       .execute();
   async _getTrafficByTimeStampAndLocation(
-    timestamp: number,
+    date_time: string,
     longitude: number,
     latitude: number,
   ): Promise<CreateTrafficDto[]> {
-    const fiveSecondsAgo = timestamp - 5 * 1000;
-    const fiveSecondsLater = timestamp + 5 * 1000;
+    const fiveSecondsAgo = dayjs(date_time)
+      .subtract(5, 's')
+      .format('YYYY-MM-DD HH:mm:ssZ');
+    const fiveSecondsLater = dayjs(date_time)
+      .add(5, 's')
+      .format('YYYY-MM-DD HH:mm:ssZ');
 
     const nearTrafficDataList: CreateTrafficDto[] = await this.trafficRepository
       .createQueryBuilder('traffic')
@@ -81,36 +45,39 @@ export class TrafficService {
         { radius: 2000 },
       )
       .andWhere(
-        'traffic.timestamp >= :fiveSecondsAgo AND traffic.timestamp <= :fiveSecondsLater',
-        { fiveSecondsAgo, fiveSecondsLater },
+        'traffic.search_time >= :fiveSecondsAgo AND traffic.search_time <= :fiveSecondsLater',
+        {
+          fiveSecondsAgo: fiveSecondsAgo,
+          fiveSecondsLater: fiveSecondsLater,
+        },
       )
       .getMany();
-    const cacheKey = getTrafficChacheKey(timestamp, longitude, latitude);
+    const cacheKey = getTrafficChacheKey(date_time, longitude, latitude);
     this.cacheManager.set(cacheKey, nearTrafficDataList);
     return nearTrafficDataList;
   }
 
-  async getTrafficByTimeStampAndLocation(
-    _timestamp: number,
+  async getTrafficByDateAndLocation(
+    date_time: string,
     longitude: number,
     latitude: number,
   ): Promise<CreateTrafficDto[]> {
-    const hour = 60 * 60 * 1000;
-    const timestamp = Math.floor(_timestamp / hour) * hour; //Accuracy is 1 hour
+    // const hour = 60 * 60 * 1000;
+    // const timestamp = Math.floor(_timestamp / hour) * hour; //Accuracy is 1 hour
 
     const count =
-      await this.searchRecordService.getSearchRecordCount(timestamp);
+      await this.searchRecordService.getSearchRecordCount(date_time);
     if (!count) {
-      await this.fetchTrafficByTimeStamp(timestamp);
+      await this.externalApiService.fetchTrafficByDate(date_time);
     }
 
     const nearTrafficDataList = await this._getTrafficByTimeStampAndLocation(
-      timestamp,
+      date_time,
       longitude,
       latitude,
     );
 
-    this.searchRecordService.saveSearchRecord(timestamp, longitude, latitude);
+    this.searchRecordService.saveSearchRecord(date_time, longitude, latitude);
 
     return nearTrafficDataList;
   }
