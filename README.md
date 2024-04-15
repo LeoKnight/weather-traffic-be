@@ -19,6 +19,12 @@ $ pnpm install
 
 ## Running the app
 
+Run docker to set up database.Install docker then
+
+```bash
+docker-compose up -d
+```
+
 ```bash
 # development
 $ pnpm run start
