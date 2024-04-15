@@ -1,10 +1,11 @@
-import { Geometry } from '../../../type';
+import { Geometry } from 'src/type';
 import { IsNotEmpty } from 'class-validator';
 
-export class CreateWeatherDto {
+export class WeatherDto {
+  id?: number;
   name: string;
   point: Geometry;
-  timestamp: string;
+  date_time: string;
   valid_period_start: string;
   valid_period_end: string;
   forecast: string;

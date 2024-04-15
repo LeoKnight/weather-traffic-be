@@ -11,14 +11,19 @@ import { UserModule } from './modules/user/user.module';
 import { configService } from './global-service/config-service/config.service';
 import { AuthMiddleware } from './middlewares/auth.middleware/auth.middleware';
 import { Base64DecryptMiddleware } from './middlewares/base64.decrypt.middleware/base64.decrypt.middleware';
-import { ExternalApiService } from './external-api/external-api.service';
+import { ExternalApiModule } from './modules/external-api/external-api.module';
+import { join } from 'path';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
+    TypeOrmModule.forRoot({
+      ...configService.getTypeOrmConfig(),
+      entities: [join(__dirname, '**', '**', '*.entity.{ts,js}')],
+    }),
     WeatherModule,
     TrafficModule,
     SearchRecordModule,
+    ExternalApiModule,
     CacheModule.register({
       ttl: 5 * 60 * 60, // 5 minutes
       isGlobal: true,
@@ -26,7 +31,7 @@ import { ExternalApiService } from './external-api/external-api.service';
     UserModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AutheService, ExternalApiService],
+  providers: [AppService, AutheService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

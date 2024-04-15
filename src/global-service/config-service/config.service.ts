@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { join } from 'path';
 import 'dotenv/config';
 
 @Injectable()
@@ -24,7 +23,6 @@ export class ConfigService {
       username: this.getValue('POSTGRES_USER'),
       password: this.getValue('POSTGRES_PASSWORD'),
       database: this.getValue('POSTGRES_DATABASE'),
-      entities: [join(__dirname, '**', '*.entity.{ts,js}')],
       synchronize: true,
     };
   }

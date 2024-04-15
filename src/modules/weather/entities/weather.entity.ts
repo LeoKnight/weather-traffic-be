@@ -1,9 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Geometry } from 'src/type';
 
 @Entity()
 export class Weather {
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column()
   name: string;
@@ -21,6 +22,8 @@ export class Weather {
     spatialFeatureType: 'Point',
     srid: 4326,
   })
+  point: Geometry;
+
   @Column({ type: 'timestamptz' })
   date_time: Date;
 }

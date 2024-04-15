@@ -4,7 +4,7 @@ import { getTrafficChacheKey } from '../../constants/cacheKeys';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { TrafficRequest } from './dto/traffic.dto';
 
-@Controller('fraffic')
+@Controller('api/traffic')
 export class TrafficController {
   constructor(
     private readonly trafficService: TrafficService,

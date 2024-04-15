@@ -1,5 +1,5 @@
 import { Entity, Column, Index, PrimaryGeneratedColumn } from 'typeorm';
-import { Geometry } from '../../../type';
+import { Geometry } from 'src/type';
 
 @Entity()
 export class Traffic {

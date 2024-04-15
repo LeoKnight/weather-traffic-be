@@ -1,7 +1,7 @@
 import { Geometry } from 'src/type';
 import { IsNotEmpty } from 'class-validator';
 
-export class CreateTrafficDto {
+export class TrafficDto {
   id?: number;
   image_url: string;
   point: Geometry;
