@@ -8,30 +8,6 @@ import { getWeatherChacheKey } from 'src/constants/cacheKeys';
 import { ExternalApiService } from 'src/modules/external-api/external-api.service';
 // import { SearchRecordService } from '../searchRecord/searchRecord.service';
 
-// {
-//   "name": "Ang Mo Kio",
-//   "label_location": {
-//       "latitude": 1.375,
-//       "longitude": 103.839
-//   }
-// },
-
-// {
-//   timestamp: "2024-04-08T17:39:37+08:00",
-//   image:
-//     "https://images.data.gov.sg/api/traffic-images/2024/04/7078791f-93ea-45f6-98a7-9f7bb2c99b43.jpg",
-//   location: {
-//     latitude: 1.323957439,
-//     longitude: 103.8728576,
-//   },
-//   camera_id: "1003",
-//   image_metadata: {
-//     height: 240,
-//     width: 320,
-//     md5: "999d9a9d30600a81847c2e45cc0bdc43",
-//   },
-// };
-
 @Injectable()
 export class WeatherService {
   constructor(
