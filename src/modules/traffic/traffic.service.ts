@@ -20,23 +20,18 @@ export class TrafficService {
     private readonly externalApiService: ExternalApiService,
   ) {}
 
-  // this.trafficRepository
-  //       .createQueryBuilder()
-  //       .insert()
-  //       .into(Traffic)
-  //       .values(trafficDtoList)
-  //       .execute();
-  async _getTrafficByTimeStampAndLocation(
+  private _getTrafficTimeRange(date_time: string): [string, string] {
+    const oneMinAgo = dayjs(date_time).subtract(1, 'm').toISOString();
+    const oneMinLater = dayjs(date_time).add(1, 'm').toISOString();
+
+    return [oneMinAgo, oneMinLater];
+  }
+  private async _getTrafficByTimeStampAndLocation(
     date_time: string,
     longitude: number,
     latitude: number,
   ): Promise<TrafficDto[]> {
-    const fiveSecondsAgo = dayjs(date_time)
-      .subtract(5, 's')
-      .format('YYYY-MM-DD HH:mm:ssZ');
-    const fiveSecondsLater = dayjs(date_time)
-      .add(5, 's')
-      .format('YYYY-MM-DD HH:mm:ssZ');
+    const [oneMinAgo, oneMinLater] = this._getTrafficTimeRange(date_time);
 
     const nearTrafficDataList: TrafficDto[] = await this.trafficRepository
       .createQueryBuilder('traffic')
@@ -45,15 +40,14 @@ export class TrafficService {
         { radius: 2000 },
       )
       .andWhere(
-        'traffic.date_time >= :fiveSecondsAgo AND traffic.date_time <= :fiveSecondsLater',
+        'traffic.date_time >= :oneMinAgo AND traffic.date_time <= :oneMinLater',
         {
-          fiveSecondsAgo: fiveSecondsAgo,
-          fiveSecondsLater: fiveSecondsLater,
+          oneMinAgo,
+          oneMinLater,
         },
       )
       .getMany();
-    const cacheKey = getTrafficChacheKey(date_time, longitude, latitude);
-    this.cacheManager.set(cacheKey, nearTrafficDataList);
+
     return nearTrafficDataList;
   }
 
@@ -61,16 +55,14 @@ export class TrafficService {
     date_time: string,
     longitude: number,
     latitude: number,
+    location: string,
   ): Promise<TrafficDto[]> {
-    // const hour = 60 * 60 * 1000;
-    // const timestamp = Math.floor(_timestamp / hour) * hour; //Accuracy is 1 hour
-
-    const count =
-      await this.searchRecordService.getSearchRecordCount(date_time);
-    debugger;
-    if (!count) {
-      await this.externalApiService.fetchTrafficByDate(date_time);
+    const cacheKey = getTrafficChacheKey(date_time, longitude, latitude);
+    const cachedTraffic: TrafficDto[] = await this.cacheManager.get(cacheKey);
+    if (cachedTraffic) {
+      return cachedTraffic;
     }
+    await this._findOrCreateTrafficByDate(date_time);
 
     const nearTrafficDataList = await this._getTrafficByTimeStampAndLocation(
       date_time,
@@ -78,8 +70,55 @@ export class TrafficService {
       latitude,
     );
 
-    this.searchRecordService.saveSearchRecord(date_time, longitude, latitude);
+    this.cacheManager.set(cacheKey, nearTrafficDataList);
+    await this.searchRecordService.createSearchRecord(date_time, location);
 
     return nearTrafficDataList;
+  }
+
+  // First search the database to see if there is data at that time.
+  // If not, fetch it from the external api.
+  private async _findOrCreateTrafficByDate(
+    date_time: string,
+  ): Promise<TrafficDto[]> {
+    const [oneMinAgo, oneMinLater] = this._getTrafficTimeRange(date_time);
+
+    const trafficData = await this.trafficRepository
+      .createQueryBuilder('traffic')
+      .where(
+        'traffic.date_time >= :oneMinAgo AND traffic.date_time <= :oneMinLater',
+        {
+          oneMinAgo,
+          oneMinLater,
+        },
+      )
+      .getMany();
+
+    if (trafficData.length > 0) {
+      return trafficData;
+    }
+    const trafficDtoList =
+      await this._getTrafficCamByDateFromExternalApi(date_time);
+    await this._insertTrafficDataToRepository(trafficDtoList);
+    return trafficDtoList;
+  }
+
+  private async _insertTrafficDataToRepository(
+    trafficDtoList: TrafficDto[],
+  ): Promise<void> {
+    await this.trafficRepository
+      .createQueryBuilder()
+      .insert()
+      .into(Traffic)
+      .values(trafficDtoList)
+      .execute();
+  }
+
+  private async _getTrafficCamByDateFromExternalApi(
+    date_time: string,
+  ): Promise<TrafficDto[]> {
+    const trafficDtoList: TrafficDto[] =
+      await this.externalApiService.fetchTrafficByDate(date_time);
+    return trafficDtoList;
   }
 }

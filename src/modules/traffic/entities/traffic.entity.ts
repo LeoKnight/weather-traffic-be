@@ -24,7 +24,4 @@ export class Traffic {
 
   @Column({ type: 'timestamptz' })
   date_time: Date;
-
-  @Column({ type: 'timestamptz' })
-  date_time_with_timezone: Date;
 }

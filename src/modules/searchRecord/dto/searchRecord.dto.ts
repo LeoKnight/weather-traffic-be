@@ -1,6 +1,17 @@
+import { IsString, IsNotEmpty } from 'class-validator';
+
 export class CreateSearchRecord {
-  timestamp: string;
-  longitude: number;
-  latitude: number;
-  date: string;
+  search_date_time: string;
+  user_id: string;
+  location: string;
+}
+
+export class SearchRecordPeriodReqDTO {
+  @IsString()
+  @IsNotEmpty()
+  start: string;
+
+  @IsString()
+  @IsNotEmpty()
+  end: string;
 }

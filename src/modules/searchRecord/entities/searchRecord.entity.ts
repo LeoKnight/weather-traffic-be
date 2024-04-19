@@ -6,17 +6,14 @@ export class SearchRecord {
   id: number;
 
   @Column({ type: 'timestamptz' })
-  date_time: Date;
+  search_date_time: Date;
 
-  @Column('float')
-  longitude: number;
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  created_date: Date;
 
-  @Column('float')
-  latitude: number;
+  @Column({ length: 255 })
+  user_id: string;
 
-  @Column({ type: 'timestamptz' })
-  search_time: Date;
-
-  @Column()
-  count: number;
+  @Column({ length: 255, nullable: false })
+  location: string;
 }

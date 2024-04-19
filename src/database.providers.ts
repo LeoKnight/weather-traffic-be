@@ -14,6 +14,7 @@ export const databaseProviders = [
         database: 'your_database',
         entities: [join(__dirname, '**', '*.entity.{ts,js}')],
         synchronize: true,
+        dropSchema: true,
       });
 
       return dataSource.initialize();

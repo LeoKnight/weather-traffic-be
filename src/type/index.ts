@@ -25,3 +25,9 @@ export interface IAreaMetadata {
     longitude: number;
   };
 }
+
+export class MostSearchesReponse {
+  from: Date;
+  to: Date;
+  count: number;
+}

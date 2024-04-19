@@ -19,4 +19,7 @@ export class TrafficRequest {
 
   @IsNotEmpty()
   latitude: number;
+
+  @IsNotEmpty()
+  location: string;
 }

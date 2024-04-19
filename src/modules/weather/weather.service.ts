@@ -24,7 +24,6 @@ export class WeatherService {
       // check if data is in repository
 
       const weatherData = await this.getDataFromRepository(date_time);
-      debugger;
       if (weatherData.length > 0) {
         return weatherData;
       }
