@@ -41,6 +41,8 @@ $ pnpm run start:dev
 # production mode
 $ pnpm run start:prod
 ```
+[Live pgAdmin](http://3.83.136.173:5050/)
+
 
 ## Test
 
@@ -57,7 +59,11 @@ a. Create an api to retrieve the most recent 10 date time + location searched by
 
 ```bash
 # api/searchRecord/most-recent-search-by-all-users
+# local
 curl --location 'localhost:3001/api/searchRecord/recent-search-by-all-users'
+# live
+curl --location 'http://3.83.136.173:3001/api/searchRecord/recent-search-by-all-users' \
+--header 'Cookie: userId=a4534961-2d65-4298-9949-ea902740154d'
 ```
 result
 ```json
@@ -120,6 +126,11 @@ b. Create an api to retrieve the top 10 date time + location searched within a p
 ```bash
 # fetch api/searchRecord/top-searches-in-period
 curl --location 'localhost:3001/api/searchRecord/top10-searches-in-day?date=2024-04-19T12%3A25%3A30'
+
+# live 
+curl --location 'http://3.83.136.173:3001/api/searchRecord/top10-searches-in-day?date=2024-04-20' \
+--header 'Cookie: userId=a4534961-2d65-4298-9949-ea902740154d'
+
 ```
 result
 ```json
@@ -182,6 +193,10 @@ c. Create an api to retrieve the period of which there are most searches perform
 ```bash
 # api/searchRecord/most-searches-within-one-hour
 curl --location 'localhost:3001/api/searchRecord/most-searches-within-one-hour?date=2024-04-19T12%3A25%3A30'
+
+# live
+curl --location 'http://3.83.136.173:3001/api/searchRecord/most-searches-within-one-hour?date=2024-04-20' \
+--header 'Cookie: userId=a4534961-2d65-4298-9949-ea902740154d'
 ```
 result 
 

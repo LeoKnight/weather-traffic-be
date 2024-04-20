@@ -23,7 +23,7 @@ export class SearchRecordService {
     location: string,
   ): Promise<void> {
     const newSearch = this.searchRecordRepository.create({
-      search_date_time: new Date(Date.parse(dateString)),
+      search_date_time: dayjs(dateString).toDate(),
       user_id: this.request.cookies.userId,
       location,
     });
