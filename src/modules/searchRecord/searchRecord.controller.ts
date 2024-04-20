@@ -1,9 +1,9 @@
 import {
   Controller,
   Get,
+  Query,
   UsePipes,
   ValidationPipe,
-  Param,
 } from '@nestjs/common';
 import { SearchRecordService } from './searchRecord.service';
 import { SearchRecord } from './entities/searchRecord.entity';
@@ -56,8 +56,9 @@ export class SearchRecordController {
     description: 'Top 10 DateTime + Location within one day',
     type: MostSearchesReponse,
   })
+  @UsePipes(new ValidationPipe())
   async getMostSearchesByDate(
-    @Param('date') date: string,
+    @Query('date') date: string,
   ): Promise<MostSearchesReponse> {
     return await this.searchRecordService.getTop10SearchesByDate(date);
   }
@@ -78,7 +79,7 @@ export class SearchRecordController {
   })
   @UsePipes(new ValidationPipe())
   async mostSearchesWithinOneHour(
-    @Param('date') date: string,
+    @Query('date') date: string,
   ): Promise<MostSearchesReponse> {
     return await this.searchRecordService.mostSearchesWithinOneHour(date);
   }

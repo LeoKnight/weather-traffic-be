@@ -62,7 +62,6 @@ export class SearchRecordService {
   async getTop10SearchesByDate(date: string): Promise<any> {
     const startOfDay = this._getStartOfDate(date);
     const endOfDay = this._getEndOfDate(date);
-    console.log(startOfDay, '=====', endOfDay);
 
     return await this.searchRecordRepository
       .createQueryBuilder()
@@ -100,6 +99,7 @@ export class SearchRecordService {
   }
 
   private _findSearcheCountEachAHour(datas): MostSearchesReponse[] {
+    debugger;
     const mostSearchesArr = datas.reduce(
       (
         acc,
@@ -116,7 +116,7 @@ export class SearchRecordService {
           });
           return acc;
         }
-        // find the range
+        // finded the range
         const rangeIndex = acc.findIndex((e) =>
           dayjs(current.created_date).isBetween(
             dayjs(e.from),
