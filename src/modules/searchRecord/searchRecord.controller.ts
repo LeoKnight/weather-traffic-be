@@ -2,14 +2,18 @@ import {
   Controller,
   Get,
   Query,
+  UseFilters,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { SearchRecordService } from './searchRecord.service';
 import { SearchRecord } from './entities/searchRecord.entity';
-import { ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MostSearchesReponse } from 'src/type';
+import { GlobalExceptionFilter } from '../../filters/global.exception/global.exception.filter';
 
+@ApiTags('SearchRecord')
+@UseFilters(new GlobalExceptionFilter())
 @Controller('api/searchRecord')
 export class SearchRecordController {
   constructor(private readonly searchRecordService: SearchRecordService) {}

@@ -10,6 +10,7 @@ import { configService } from './global-service/config-service/config.service';
 import { AuthMiddleware } from './middlewares/auth.middleware/auth.middleware';
 import { ExternalApiModule } from './modules/external-api/external-api.module';
 import { join } from 'path';
+import { RequestLoggerMiddleware } from './middlewares/request-logger.middleware/request-logger.middleware';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { join } from 'path';
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
     consumer.apply(AuthMiddleware).forRoutes('api/weather');
     consumer.apply(AuthMiddleware).forRoutes('api/traffic');
   }
